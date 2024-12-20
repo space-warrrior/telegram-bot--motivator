@@ -81,9 +81,9 @@ bot.callbackQuery(/category[1-3]/, ctx => {
    selectedCategory = ctx.callbackQuery.data
    ctx.editMessageText("At what time would you like to receive quotes?", {
          reply_markup: InlineKeyboard.from([
-            [InlineKeyboard.text("8:00", "8")],
-            [InlineKeyboard.text("12:00", "12")],
-            [InlineKeyboard.text("18:00", "18")],
+            [InlineKeyboard.text("8:00 🕗", "8")],
+            [InlineKeyboard.text("12:00 🕛", "12")],
+            [InlineKeyboard.text("18:00 🕕", "18")],
             [InlineKeyboard.text("< Back", "back")]
          ])
       }
