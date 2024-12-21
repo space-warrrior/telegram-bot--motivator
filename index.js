@@ -19,14 +19,19 @@ let selectedTime = ""
 
 // The text will be shown when the user starts the bot: 
 const startHTML = `
-<b>What can this bot do?</b>
+<b>🤔 What can this bot do?</b>
 
-Training Practice Bot helps you practice and learn about new
-Telegram Bot features in an easy and convenient way
+<strong>'Motivator Bot'</strong> helps you stay motivated and inspired by sending you daily quotes. You can choose <strong>one</strong> of the following categories:
+
+- Happiness 🤗
+- Love ❤️
+- Hope 🌈
+
+To get started, use the command: /select_category
 
 About the Author: <a href="https://github.com/7FOX7">https://github.com/7FOX7</a>
 
-Contact <a href="mailto:kheeugene@gmail.com">kheeugene@gmail.com</a> should you have any questions and concerns 
+Contact <a href="mailto:kheeugene@gmail.com">kheeugene@gmail.com</a> should you have any questions or concerns
 `
 
 // The function to get the quote in HTML format:
