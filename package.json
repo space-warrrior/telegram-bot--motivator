@@ -17,5 +17,8 @@
     "dotenv": "^16.4.7",
     "grammy": "^1.33.0",
     "nodemon": "^3.1.9"
+  },
+  "devDependencies": {
+    "supabase": "^2.1.1"
   }
 }
