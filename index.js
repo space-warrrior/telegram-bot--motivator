@@ -123,13 +123,6 @@ bot.callbackQuery(/8|12|18/, async function(ctx) {
             time: selectedTime
          }
       )
-      // Get all the users from the database:
-      const users = (await client.from("users").select("*")).data
-      if(users.length === 0) throw new Error("No users selected")
-      // Send the quotes to all the users:
-      users.forEach(async (user) => {
-         await sendQuotes(user)
-      })
 
       // Show the message to the user after successfully setting up the quotes: 
       await ctx.editMessageText(`Got it! You will be getting quotes about *${categories[categoryId -1 ].text}* at *${selectedTime}:00* every day!`, {
@@ -138,7 +131,7 @@ bot.callbackQuery(/8|12|18/, async function(ctx) {
    }
    catch(err) {
       ctx.reply("😨 Ooops! Something went wrong. Please try again later.")
-      console.error("Something went wrong: ", err)
+      console.error("Something went wrong when inserting a new user record: ", err)
    }
 })
 
@@ -163,6 +156,26 @@ bot.catch(err => {
 })
 
 bot.start()
+
+// DATABASE part:
+client.channel("telegram-channel").on("postgres_changes", {
+   event: "INSERT", 
+   schema: "public", 
+   table: "users"
+}, async function() {
+   // Get all the users from the database:
+   try {
+      const users = (await client.from("users").select("*")).data
+      if(users.length === 0) throw new Error("No users selected")
+      // Send the quotes to all the users:
+      users.forEach(async (user) => {
+         await sendQuotes(user)
+      })
+   }
+   catch(err) {
+      console.error("Something went wrong when setting quotes of the user: ", err)
+   }
+}).subscribe()
 
 // UTILS: 
 async function sendQuotes(user) {

@@ -1,0 +1,27 @@
+1. When using: 
+
+supabaseClient.channel("some-channel-name")
+   .on("postgres_changes", {
+      event: "INSERT | UPDATE | DELETE", 
+      schema: public, 
+   }, handleFunction)
+   .subscribe()
+
+- This will trigger whenever we modify ANY table (be careful)
+
+
+2. When using: 
+
+supabaseClient.channel("some-channel-name")
+   .on("postgres_changes", {
+      event: "INSERT | UPDATE | DELETE", 
+      schema: public,
+      table: "users" 
+   }, handleFunction)
+   .subscribe()
+
+- This will trigger whenever we modify the table 'users'. 
+
+
+NOTE: remember that you should always pass the referece to the function, as otherwise this will be 
+executed prematurely
