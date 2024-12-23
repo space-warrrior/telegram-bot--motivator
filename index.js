@@ -306,7 +306,6 @@ bot.callbackQuery("back", async(ctx) => {
    }
    // Handle errors:
    catch(err) {
-      // handle the error if the insertion failed
       console.error("Could not return back to the last inline button: " + err)
    }
 })
@@ -339,7 +338,6 @@ bot.on("message", async(ctx) => {
    }
    // Handle errors:
    catch(err) {
-      // handle the error if the insertion failed
       console.error("Could not insert user comment to the db: " + err)
    }
 })
@@ -369,12 +367,13 @@ client.channel("telegram-channel").on("postgres_changes", {
    try {
       const users = (await client.from("users").select("*")).data
       if(users.length === 0) throw new Error("No users selected")
-      // Send the quotes to all the users:
+      // Send the quotes to all the users and feedback query after the quote:
       users.forEach(async (user) => {
          await sendQuotes(user)
          await sendFeedbackQuery()
       })
    }
+   // Handle errors:
    catch(err) {
       console.error("Something went wrong when setting quotes of the user: ", err)
    }
@@ -383,15 +382,30 @@ client.channel("telegram-channel").on("postgres_changes", {
 // UTILS: 
 async function sendQuotes(user) {
    const {firstName, telegramId, categoryId, time} = user
-   const job = new Cron(`* * * * *`, async () => {
-      const {id, content, author} = (await client.from("quotes").select("*").eq('categoryId', categoryId)).data[0]
-      if(!content || !author) throw new Error("No content or author")
-      quoteId = id
-      await bot.api.sendMessage(telegramId, getQuoteHTML(firstName, content, author), {
-         parse_mode: "HTML"
-      })
+   const job = new Cron(`* * * * *`)
+   // Pass the callback function to the 'schedule' method (not the Cron constructor) to avoid duplicated 
+   // messages: 
+   job.schedule(async () => {
+      // You want to create the 'try/catch' block here as on the outer level it will NOT handle the errors: 
+      try {
+         // Make sure there is an existing quote which has the refers to the categoryId (say 3), 
+         // otherwise, an error will be thrown: 
+         const quote = (await client.from("quotes").select("*").eq('categoryId', categoryId)).data[0]
+         if(!quote) throw new Error("Quote does not contain full data (probably id is missing)")
+         // Destructure values: 
+         const {id, author, content} = quote
+         // Assign originial id to the 'quoteId' (you will then use it to determine to which feedback add additional comment): 
+         quoteId = id
+         // Send the quote to the user: 
+         await bot.api.sendMessage(telegramId, getQuoteHTML(firstName, content, author), {
+            parse_mode: "HTML"
+         })
+      }
+      // Handle errors:
+      catch(err) {
+         console.error("Failed to select the quote for the user: " + err)
+      }
    })
-   job.schedule()
 }
 
 async function sendFeedbackQuery() {
