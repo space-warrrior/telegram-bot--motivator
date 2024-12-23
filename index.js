@@ -13,6 +13,9 @@ const client = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY, 
 const bot = new Bot(process.env.API_KEY)
 bot.use(hydrate())   // will hydrate the state on every update
 
+// CONSTS: 
+const wordLimit = 250; 
+
 // We will use these variables to keep track of the flow of our program:
 let selectedCategory = ""
 let selectedTime = ""
@@ -21,7 +24,7 @@ let currentInlineKeyboard = new InlineKeyboard
 let feedbackClarification = ""
 let userId = 0
 let quoteId = 0
-let awaitingComment = false;
+let awaitingComment = false
 
 // The text will be shown when the user starts the bot: 
 const startHTML = `
@@ -231,7 +234,7 @@ bot.callbackQuery(["yes_comment", "no_comment"], async(ctx) => {
          // sends the message: 'bot.on('message')): 
          awaitingComment = true
          // Edit the message text respectively: 
-         await ctx.editMessageText("Please write your comment in the message input (*Word Limit - 250*)", {
+         await ctx.editMessageText(`Please write your comment in the message input (*Word Limit - ${wordLimit}*)`, {
             parse_mode: "Markdown", 
             // The button 'Cancel' will be present in case the user does not want to write a comment: 
             reply_markup: new InlineKeyboard().text("Cancel", "cancel_comment")
@@ -281,7 +284,7 @@ bot.callbackQuery(["yes_cancel_comment", "no_cancel_comment"], async(ctx) => {
          // Set to 'true' (we expect every sent message is a potential comment of the user):  
          awaitingComment = true
          // Edit the message text Respectively: 
-         await ctx.editMessageText("Please write your comment in the message input (*Word Limit - 250*)", {
+         await ctx.editMessageText(`Please write your comment in the message input (*Word Limit - ${wordLimit}*)`, {
             parse_mode: "Markdown", 
             reply_markup: new InlineKeyboard().text("Cancel", "cancel_comment")
          })
@@ -322,8 +325,11 @@ bot.on("message", async(ctx) => {
    // If we expect no comment then just ignore the current message: 
    if(!awaitingComment) return
    // If we expect the comment but the length if greater or equal to 10: 
-   if(ctx.message.text.length >= 10) {
-      await ctx.reply("Please write your comment in the message input (*Word Limit - 250*)")
+   if(ctx.message.text.length >= wordLimit) {
+      await ctx.reply(`Please write your comment in the message input (*Word Limit - ${wordLimit}*)`, {
+         parse_mode: "Markdown", 
+         reply_markup: new InlineKeyboard().text("Cancel", "cancel_comment")
+      })
       return
    }
    try {
