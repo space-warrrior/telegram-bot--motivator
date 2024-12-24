@@ -313,14 +313,6 @@ bot.callbackQuery("back", async(ctx) => {
    }
 })
 
-bot.on(":voice", ctx => {
-   currentInlineText = "If you don't mind us asking, give us a rating on the quote"
-   currentInlineKeyboard = new InlineKeyboard().text("😍 Excellent", "excellent").text("🙂 Good", "good").text("😕 Bad", "bad")
-   ctx.reply(currentInlineText, {
-      reply_markup: currentInlineKeyboard
-   })
-})
-
 bot.on("message", async(ctx) => {
    // If we expect no comment then just ignore the current message: 
    if(!awaitingComment) return
@@ -376,7 +368,6 @@ client.channel("telegram-channel").on("postgres_changes", {
       // Send the quotes to all the users and feedback query after the quote:
       users.forEach(async (user) => {
          await sendQuotes(user)
-         await sendFeedbackQuery()
       })
    }
    // Handle errors:
@@ -388,7 +379,7 @@ client.channel("telegram-channel").on("postgres_changes", {
 // UTILS: 
 async function sendQuotes(user) {
    const {firstName, telegramId, categoryId, time} = user
-   const job = new Cron(`* * * * *`)
+   const job = new Cron(`* ${time} * * *`)
    // Pass the callback function to the 'schedule' method (not the Cron constructor) to avoid duplicated 
    // messages: 
    job.schedule(async () => {
@@ -406,6 +397,7 @@ async function sendQuotes(user) {
          await bot.api.sendMessage(telegramId, getQuoteHTML(firstName, content, author), {
             parse_mode: "HTML"
          })
+         await sendFeedbackQuery(firstName, telegramId)
       }
       // Handle errors:
       catch(err) {
@@ -414,6 +406,15 @@ async function sendQuotes(user) {
    })
 }
 
-async function sendFeedbackQuery() {
-
+async function sendFeedbackQuery(firstName, telegramId) {
+   try {
+      currentInlineText = `${firstName}, if you don't mind us asking, give us a rating on the quote`
+      currentInlineKeyboard = new InlineKeyboard().text("😍 Excellent", "excellent").text("🙂 Good", "good").text("😕 Bad", "bad")
+      await bot.api.sendMessage(telegramId, currentInlineText, {
+         reply_markup: currentInlineKeyboard
+      })
+   }
+   catch(err) {
+      console.error("Something went wrong when inserting a new user record: ", err)
+   }
 }
